@@ -10,22 +10,19 @@ import java.util.stream.Stream;
 
 public class led {
     public static void main(String args[]) throws FileNotFoundException {
+        LinkedList<Input> inputs = getInputs();
+        LinkedList<String> solutions = solveInputs(inputs);
+        outputSolutions(solutions);
+    }
+
+    private static LinkedList<Input> getInputs() throws FileNotFoundException {
         File inputFile = new File("led.in");
-        File outputFile = new File("led.out");
-
         Scanner scanner = new Scanner(inputFile);
-        PrintWriter printWriter = new PrintWriter(outputFile);
 
+        LinkedList<Input> inputs = new LinkedList<>();
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
-            String[] splitLine = line.split(" ");
-
-            Set<Integer> brokenComponents = Stream
-                    .of(line)
-                    .map(s -> s.split(" "))
-                    .flatMap(Arrays::stream)
-                    .mapToInt(Integer::parseInt)
-                    .boxed().collect(Collectors.toSet());
+            Set<Integer> brokenComponents = stringToIntegerSet(line);
 
             if (brokenComponents.size() == 1 && brokenComponents.contains(0)) {
                 break;
@@ -33,41 +30,71 @@ public class led {
 
             brokenComponents.remove(0);
 
-//            System.out.println(brokenComponents);
-
-            SevenSegmentDisplay.BrokenSevenSegmentDisplayFactory factory = new SevenSegmentDisplay.BrokenSevenSegmentDisplayFactory(
-                    brokenComponents.contains(1),
-                    brokenComponents.contains(2),
-                    brokenComponents.contains(3),
-                    brokenComponents.contains(4),
-                    brokenComponents.contains(5),
-                    brokenComponents.contains(6),
-                    brokenComponents.contains(7)
-            );
-
-            Map<SevenSegmentDisplay, Set<Integer>> mapOfDisplaysToIntegers = new HashMap<>();
-            Set<Set<Integer>> integersThatHaveDisplayCollisions = new HashSet<>();
-
-            for (int i = 0; i < 10; i++) {
-                SevenSegmentDisplay display = factory.create(i);
-                if (mapOfDisplaysToIntegers.containsKey(display)) {
-//                    System.out.println("Collisions with " + i);
-                    Set<Integer> set = mapOfDisplaysToIntegers.get(display);
-                    if (set.size() == 1) {
-                        integersThatHaveDisplayCollisions.add(set);
-                    }
-                    set.add(i);
-                } else {
-                    Set<Integer> set = new HashSet<>();
-                    set.add(i);
-                    mapOfDisplaysToIntegers.put(display, set);
-                }
-            }
-
-            String soluction = createSolutionString(brokenComponents, integersThatHaveDisplayCollisions);
-            System.out.println(soluction);
-
+            Input input = new Input(brokenComponents);
+            inputs.add(input);
         }
+        return inputs;
+    }
+
+    private static void outputSolutions(LinkedList<String> solutions) throws FileNotFoundException {
+        File outputFile = new File("led.out");
+        PrintWriter printWriter = new PrintWriter(outputFile);
+        solutions.forEach(solution -> {
+            System.out.println(solution);
+            printWriter.println(solution);
+        });
+        printWriter.close();
+    }
+
+
+    private static LinkedList<String> solveInputs(LinkedList<Input> inputs) {
+        LinkedList<String> solutions = new LinkedList<>();
+        inputs.forEach(input -> solutions.add(solveInput(input)));
+        return solutions;
+    }
+
+    private static String solveInput(Input input) {
+        Set<Integer> brokenComponents = input.brokenComponents;
+
+        SevenSegmentDisplay.BrokenSevenSegmentDisplayFactory displayFactory = new SevenSegmentDisplay.BrokenSevenSegmentDisplayFactory(
+                brokenComponents.contains(1),
+                brokenComponents.contains(2),
+                brokenComponents.contains(3),
+                brokenComponents.contains(4),
+                brokenComponents.contains(5),
+                brokenComponents.contains(6),
+                brokenComponents.contains(7)
+        );
+
+        Map<SevenSegmentDisplay, Set<Integer>> mapOfDisplaysToIntegers = new HashMap<>();
+        Set<Set<Integer>> integersThatHaveDisplayCollisions = new HashSet<>();
+
+        for (int i = 0; i < 10; i++) {
+            SevenSegmentDisplay display = displayFactory.create(i);
+            if (mapOfDisplaysToIntegers.containsKey(display)) {
+                Set<Integer> set = mapOfDisplaysToIntegers.get(display);
+                if (set.size() == 1) {
+                    integersThatHaveDisplayCollisions.add(set);
+                }
+                set.add(i);
+            } else {
+                Set<Integer> set = new HashSet<>();
+                set.add(i);
+                mapOfDisplaysToIntegers.put(display, set);
+            }
+        }
+
+        return createSolutionString(brokenComponents, integersThatHaveDisplayCollisions);
+    }
+
+    private static Set<Integer> stringToIntegerSet(String input) {
+        return Stream
+                .of(input)
+                .map(s -> s.split(" "))
+                .flatMap(Arrays::stream)
+                .mapToInt(Integer::parseInt)
+                .boxed()
+                .collect(Collectors.toSet());
     }
 
     // this is terrible
@@ -91,6 +118,14 @@ public class led {
 
 
         return String.format("Case <%s>: %s", brokenSegmentsString, collisionsString);
+    }
+
+    private static class Input {
+        Set<Integer> brokenComponents;
+
+        public Input(Set<Integer> brokenComponents) {
+            this.brokenComponents = brokenComponents;
+        }
     }
 
     private static class SevenSegmentDisplay {
