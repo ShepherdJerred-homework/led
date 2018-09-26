@@ -41,9 +41,6 @@ public class led {
                 brokenSegmentBitSet.set(brokenSegment - 1, false);
             }
 
-//            System.out.println(Arrays.toString(brokenSegmentInts));
-//            System.out.println(brokenSegmentBitSet);
-
             Map<Integer, BitSet> numbersAfterBrokenSegments = new HashMap<>();
             for (int i = 0; i < 10; i++) {
                 BitSet clonedBitSet = (BitSet) originalNumbers.get(i).clone();
@@ -51,10 +48,10 @@ public class led {
                 numbersAfterBrokenSegments.put(i, clonedBitSet);
             }
 
-            Set<Set> identicalNumbers = new HashSet<>();
+            Set<Set> identicalNumbers = new LinkedHashSet<>();
 
             for (int i = 0; i < 10; i++) {
-                Set<Integer> set = new HashSet<>();
+                Set<Integer> set = new LinkedHashSet<>();
                 set.add(i);
                 for (int j = 0; j < 10; j++) {
                     if (i == j) {
@@ -69,8 +66,32 @@ public class led {
                 }
             }
 
-            System.out.println(String.format("Case <%s>: %s", Arrays.toString(brokenSegmentInts), identicalNumbers));
+            String outputString;
+            if (identicalNumbers.isEmpty()) {
+                outputString = String.format("Case <%s>:", Arrays.toString(brokenSegmentInts)
+                        .replace("[", "")
+                        .replace("]", "")
+                        .replace(", ", ","));
+            } else {
+                outputString = String.format("Case <%s>: %s",
+                        Arrays.toString(brokenSegmentInts)
+                                .replace("[", "")
+                                .replace("]", "")
+                                .replace(", ", ","),
+                        identicalNumbers.toString()
+                                .replace("[[", "{")
+                                .replace("]]", "}")
+                                .replace("[", "{")
+                                .replace("]", "}")
+                                .replace(", ", ",")
+                                .replace("},{", "} {"));
+            }
+
+            System.out.println(outputString);
+            printWriter.println(outputString);
+
         }
+        printWriter.close();
     }
 
     public static BitSet createBitSetForInt(int i) {
